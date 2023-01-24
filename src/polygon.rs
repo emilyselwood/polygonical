@@ -3,6 +3,8 @@ use float_cmp::approx_eq;
 use crate::{boundingbox::BoundingBox, geom, point::Point};
 use std::f64::consts::PI;
 
+#[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
+
 pub struct Polygon {
     pub points: Vec<Point>,
     pub bounds: BoundingBox,
@@ -21,31 +23,31 @@ impl Polygon {
         }
 
         let bounds = BoundingBox::from_points(&points);
-        return Polygon { points, bounds };
+        Polygon { points, bounds }
     }
 
     // TODO: circles
     // TODO: rectangle
 
-    /// return the number of points in this polygon
+    /// Return the number of points in this polygon
     pub fn len(&self) -> usize {
         self.points.len()
     }
 
-    /// return the two points describing a side of this polygon. Indexing from zero.
+    /// Return the two points describing a side of this polygon. Indexing from zero.
     pub fn get_side(&self, i: usize) -> (Point, Point) {
         let p1 = self.points[i];
-        let p2: Point;
         // handle that the polygon wraps around back to the start.
-        if i + 1 >= self.points.len() {
-            p2 = self.points[0];
+        let p2: Point = if i + 1 >= self.points.len() {
+            self.points[0]
         } else {
-            p2 = self.points[i + 1];
-        }
+            self.points[i + 1]
+        };
+
         (p1, p2)
     }
 
-    /// get a vector of point pairs for every side of this polygon, in order.
+    /// Return a vector of point pairs for every side of this polygon, in order.
     pub fn sides(&self) -> Vec<(Point, Point)> {
         let mut result = Vec::new();
 
@@ -80,9 +82,8 @@ impl Polygon {
     pub fn area(&self) -> f64 {
         let mut triangle_sum = 0.0;
         let sides = self.sides();
-        for i in 0..sides.len() - 1 {
-            triangle_sum =
-                triangle_sum + geom::area_of_triangle(Point::zero(), sides[i].0, sides[i].1)
+        for s in sides.iter().take(sides.len() - 1) {
+            triangle_sum += geom::area_of_triangle(Point::zero(), s.0, s.1)
         }
 
         triangle_sum
@@ -94,8 +95,8 @@ impl Polygon {
         let mut y = 0.0;
 
         for p in self.points.iter() {
-            x = x + p.x;
-            y = y + p.y;
+            x += p.x;
+            y += p.y;
         }
         let len = self.len() as f64;
 
@@ -112,7 +113,7 @@ impl Polygon {
         let mut total: f64 = 0.0;
 
         for point in self.points.iter() {
-            total = total + p.angle_to(point);
+            total += p.angle_to(point);
         }
 
         approx_eq!(f64, total.abs(), 2.0 * PI, ulps = 2)

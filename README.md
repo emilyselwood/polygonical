@@ -1,6 +1,6 @@
 # Polygonical
 
-A library for handling polygons on a 2d plain.
+A library for interacting with polygons on a 2d plain.
 
 ## Design goals
 

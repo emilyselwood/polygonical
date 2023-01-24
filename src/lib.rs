@@ -1,4 +1,4 @@
-#[doc = include_str!("../README.md")]
+#![doc = include_str!("../README.md")]
 pub mod boundingbox;
 pub mod point;
 pub mod polygon;

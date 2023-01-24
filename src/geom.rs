@@ -32,7 +32,7 @@ pub fn lines_intersect(a: Point, b: Point, c: Point, d: Point) -> bool {
         return true;
     }
 
-    return false;
+    false
 }
 
 #[derive(PartialEq)]
@@ -50,7 +50,7 @@ fn orientation(a: Point, b: Point, c: Point) -> Orientation {
     } else if v > 0.0 {
         return Orientation::Clockwise;
     }
-    return Orientation::AntiClockwise;
+    Orientation::AntiClockwise
 }
 
 fn on_segment(a: Point, b: Point, c: Point) -> bool {
