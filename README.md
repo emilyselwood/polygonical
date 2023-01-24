@@ -12,13 +12,18 @@ In that order
 
 ## Features
 
+* Points
+* Polygons
+* Bounding boxes
+* Translations of points
+* Polygons contain points
+* Polygon is_self_intersecting
+* Polygon area
+
 ## Wanted Features
 
 Things we want to implement but haven't yet.
 
-* Points
-* Polygons
-* Translations of points
 * Translations of polygons
 * Rotations of points
 * Rotations of polygons
@@ -28,7 +33,6 @@ Things we want to implement but haven't yet.
 * Contains detection
 * Polygon unions
 * Polygon subtraction
-* Polygon 
 
 
 ## Unwanted Features
@@ -37,3 +41,4 @@ Things this library won't do.
 
 * 3d Geometry
 * Output to things like svg (that is for another library)
+* Coordinate system transforms, epsg codes, pixel space to world space etc.

@@ -3,9 +3,9 @@
 
 */
 
+pub mod boundingbox;
 pub mod point;
 pub mod polygon;
-pub mod boundingbox;
 
 mod geom;
 mod maths;

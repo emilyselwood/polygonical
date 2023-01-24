@@ -2,16 +2,14 @@ use std::fmt;
 
 use crate::{point::Point, polygon::Polygon};
 
-
 pub struct BoundingBox {
-    a : Point,
-    b : Point,
+    a: Point,
+    b: Point,
 }
 
 impl BoundingBox {
-
-    pub fn new(a: Point, b: Point) -> Self{
-        BoundingBox{a, b}
+    pub fn new(a: Point, b: Point) -> Self {
+        BoundingBox { a, b }
     }
 
     pub fn from_points(points: &Vec<Point>) -> Self {
@@ -26,20 +24,25 @@ impl BoundingBox {
         BoundingBox { a: min, b: max }
     }
 
-    pub fn contains(self, p:Point) -> bool {
-        self.a.x >= p.x && self.b.x <= p.x &&
-        self.a.y >= p.y && self.b.y <= p.y
+    pub fn contains(&self, p: Point) -> bool {
+        self.a.x >= p.x && self.b.x <= p.x && self.a.y >= p.y && self.b.y <= p.y
     }
 
-    pub fn to_polygon(self) -> Polygon {
+    pub fn to_polygon(&self) -> Polygon {
         let points = vec![
             Point::new(self.a.x, self.a.y),
             Point::new(self.b.x, self.a.y),
             Point::new(self.a.x, self.b.y),
             Point::new(self.b.x, self.b.y),
         ];
-
         Polygon::new(points)
+    }
+
+    pub fn intersects(&self, other: &BoundingBox) -> bool {
+        other.contains(Point::new(self.a.x, self.a.y))
+            || other.contains(Point::new(self.b.x, self.a.y))
+            || other.contains(Point::new(self.a.x, self.b.y))
+            || other.contains(Point::new(self.b.x, self.b.y))
     }
 }
 
@@ -48,7 +51,6 @@ impl fmt::Display for BoundingBox {
         write!(formatter, "BoundingBox({}, {}", self.a, self.b)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
