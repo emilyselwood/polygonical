@@ -19,12 +19,12 @@ In that order
 * Polygons contain points
 * Polygon is_self_intersecting
 * Polygon area
+* Translations of polygons
 
 ## Wanted Features
 
 Things we want to implement but haven't yet.
 
-* Translations of polygons
 * Rotations of points
 * Rotations of polygons
 * Scale of points

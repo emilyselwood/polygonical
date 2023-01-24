@@ -32,7 +32,7 @@ impl Polygon {
         self.points.len()
     }
 
-    /// get_side returns the two points describing a side of this polygon. Indexing from zero.
+    /// return the two points describing a side of this polygon. Indexing from zero.
     pub fn get_side(&self, i: usize) -> (Point, Point) {
         let p1 = self.points[i];
         let p2: Point;
@@ -49,14 +49,14 @@ impl Polygon {
     pub fn sides(&self) -> Vec<(Point, Point)> {
         let mut result = Vec::new();
 
-        for i in 0 .. self.len() {
+        for i in 0..self.len() {
             result.push(self.get_side(i));
         }
 
         result
     }
 
-    /// Do any of the lines of this polygon cross over themselves?
+    /// Do any of the lines of this polygon cross over any other lines?
     pub fn is_self_intersecting(&self) -> bool {
         for i in 0..self.points.len() {
             let (p1, p2) = self.get_side(i);
@@ -76,19 +76,33 @@ impl Polygon {
         false
     }
 
-
-    /// return the area of this polygon
+    /// Return the area of this polygon
     pub fn area(&self) -> f64 {
         let mut triangle_sum = 0.0;
         let sides = self.sides();
-        for i in 0 .. sides.len()-1 {
-            triangle_sum = triangle_sum + geom::area_of_triangle(Point::zero(), sides[i].0, sides[i].1)
+        for i in 0..sides.len() - 1 {
+            triangle_sum =
+                triangle_sum + geom::area_of_triangle(Point::zero(), sides[i].0, sides[i].1)
         }
-        
+
         triangle_sum
     }
 
-    /// contains returns true if the point p is inside of this polygon
+    /// Return the point average of this polygon giving a possible centre
+    pub fn center(&self) -> Point {
+        let mut x = 0.0;
+        let mut y = 0.0;
+
+        for p in self.points.iter() {
+            x = x + p.x;
+            y = y + p.y;
+        }
+        let len = self.len() as f64;
+
+        Point::new(x / len, y / len)
+    }
+
+    /// Contains returns true if the point p is inside of this polygon
     pub fn contains(&self, p: Point) -> bool {
         // fast path check with the bounding box first, if its outside that then it can never be inside the polygon.
         if !self.bounds.contains(p) {
@@ -102,6 +116,12 @@ impl Polygon {
         }
 
         approx_eq!(f64, total.abs(), 2.0 * PI, ulps = 2)
+    }
+
+    /// Move this polygon by point p
+    pub fn translate(&self, p: Point) -> Polygon {
+        let points = self.points.iter().map(|point| point.translate(p)).collect();
+        Polygon::new(points)
     }
 }
 

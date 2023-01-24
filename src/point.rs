@@ -13,10 +13,13 @@ impl Point {
         return Point { x, y };
     }
 
+    /// Create a point at the origin
     pub fn zero() -> Self {
         Point { x: 0.0, y: 0.0 }
     }
 
+    /// Create a point with f64::MAX for the coords.
+    /// Useful for finding min values of points
     pub fn new_max() -> Self {
         Point {
             x: f64::MAX,
@@ -24,6 +27,8 @@ impl Point {
         }
     }
 
+    /// Create a point with f64::MIN for the coords.
+    /// Useful for finding max values of points
     pub fn new_min() -> Self {
         Point {
             x: f64::MIN,
@@ -31,6 +36,7 @@ impl Point {
         }
     }
 
+    /// Given another point return the min of the x and y values
     pub fn min(self, other: Point) -> Point {
         Point {
             x: self.x.min(other.x),
@@ -38,6 +44,7 @@ impl Point {
         }
     }
 
+    /// Given another point return the max of the x and y values
     pub fn max(self, other: Point) -> Point {
         Point {
             x: self.x.max(other.x),
@@ -45,6 +52,7 @@ impl Point {
         }
     }
 
+    /// Flip the sign of both x and y coords
     pub fn invert(self) -> Point {
         Point {
             x: -self.x,
@@ -52,7 +60,7 @@ impl Point {
         }
     }
 
-    // offset / translate this point by another one.
+    /// offset / translate this point by another one.
     pub fn translate(self, by: Point) -> Point {
         Point {
             x: self.x + by.x,
@@ -60,7 +68,7 @@ impl Point {
         }
     }
 
-    // Return the angle in radians to another point
+    /// Return the angle in radians to another point
     pub fn angle_to(self, other: &Point) -> f64 {
         let translated = other.translate(self.invert());
 
