@@ -79,7 +79,12 @@ impl Polygon {
     }
 
     /// Return the area of this polygon
+    /// Note: This will panic if the polygon is self intersecting.
     pub fn area(&self) -> f64 {
+        if self.is_self_intersecting() {
+            panic!("Can not calculate the area of a self intersecting polygon")
+        }
+
         let mut triangle_sum = 0.0;
         let sides = self.sides();
         for s in sides.iter().take(sides.len() - 1) {
