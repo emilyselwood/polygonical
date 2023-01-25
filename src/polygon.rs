@@ -7,6 +7,7 @@ use std::{
     iter::zip,
 };
 
+/// Polygon describes the 
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
 #[derive(Debug, Clone)]
 pub struct Polygon {
@@ -124,6 +125,45 @@ impl Polygon {
         approx_eq!(f64, total.abs(), 2.0 * PI, ulps = 2)
     }
 
+    /// Returns true if any part of the other polygon overlaps this one.
+    /// Entirely containing other or being contained by other counts here.
+    /// Note: this has worst case runtime on two polygons that don't intersect but their bounding boxes do. 
+    /// O(n^2) where n is the sum of the number of sides in the two polygons
+    pub fn intersects(&self, other: &Polygon) -> bool {
+
+        // first check if the bounding boxes intersect as a quicker check
+        if !self.bounds.intersects(&other.bounds) {
+            return false
+        }
+
+        // if any other sides intersect then the two polygons intersect
+        // This also checks any of the points being the same due to the way the lines_intersect algorithm works
+        let self_sides = self.sides();
+        let other_sides = other.sides();
+
+        for self_side in self_sides.iter() {
+            for other_side in other_sides.iter() {
+                if geom::lines_intersect(self_side.0, self_side.1, other_side.0, other_side.1) {
+                    return true
+                }
+            }
+        }
+
+        // If that wasn't true check if the first point of the other is inside this polygon.
+        // the only way this could be true is if all the points are inside so we only need to check the first one
+        if self.contains(other.points[0]) {
+            return true
+        }
+
+        // Also possible that the other one entirely contains this one
+        if other.contains(self.points[0]) {
+            return true
+        }
+
+        // now we know that other does not intersect with this polygon
+        false
+    }
+
     /// Move this polygon by point p
     pub fn translate(&self, p: Point) -> Polygon {
         let points = self.points.iter().map(|point| point.translate(p)).collect();
@@ -150,6 +190,8 @@ impl Polygon {
 
         Polygon::new(new_points)
     }
+
+    
 }
 
 impl PartialEq for Polygon {
