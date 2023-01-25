@@ -2,6 +2,7 @@ use std::fmt;
 
 use crate::{point::Point, polygon::Polygon};
 
+#[derive(Debug, Clone, Copy)]
 pub struct BoundingBox {
     a: Point,
     b: Point,
@@ -48,7 +49,7 @@ impl BoundingBox {
 
 impl fmt::Display for BoundingBox {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "BoundingBox({}, {}", self.a, self.b)
+        write!(formatter, "BoundingBox({}, {})", self.a, self.b)
     }
 }
 
