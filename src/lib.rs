@@ -8,11 +8,16 @@ mod maths;
 
 #[cfg(test)]
 mod tests {
-    
+
     macro_rules! assert_f64 {
         ($actual:expr, $expected:expr) => {
             use float_cmp::approx_eq;
-            assert!(approx_eq!(f64, $actual, $expected, ulps = 2), "got:{} expected:{}", $actual, $expected);
+            assert!(
+                approx_eq!(f64, $actual, $expected, ulps = 2),
+                "got:{} expected:{}",
+                $actual,
+                $expected
+            );
         };
     }
     pub(crate) use assert_f64;

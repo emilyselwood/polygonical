@@ -6,7 +6,7 @@ use std::{
     iter::zip,
 };
 
-/// Polygon describes the 
+/// Polygon describes the
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
 #[derive(Debug, Clone)]
 pub struct Polygon {
@@ -120,7 +120,7 @@ impl Polygon {
         }
 
         // work out the sum of the angles between adjacent points and the point we are checking.
-        // if the sum is equal to 360 degrees then we are inside the polygon. 
+        // if the sum is equal to 360 degrees then we are inside the polygon.
         let mut total = 0.0;
 
         for i in 0..self.points.len() {
@@ -135,20 +135,19 @@ impl Polygon {
                 angle_a - angle_b
             };
 
-            total += result; 
+            total += result;
         }
         approx_eq!(f64, total.abs(), 360.0_f64.to_radians(), ulps = 2)
     }
 
     /// Returns true if any part of the other polygon overlaps this one.
     /// Entirely containing other or being contained by other counts here.
-    /// Note: this has worst case runtime on two polygons that don't intersect but their bounding boxes do. 
+    /// Note: this has worst case runtime on two polygons that don't intersect but their bounding boxes do.
     /// O(n^2) where n is the sum of the number of sides in the two polygons
     pub fn intersects(&self, other: &Polygon) -> bool {
-
         // first check if the bounding boxes intersect as a quicker check
         if !self.bounds.intersects(&other.bounds) {
-            return false
+            return false;
         }
 
         // if any other sides intersect then the two polygons intersect
@@ -159,7 +158,7 @@ impl Polygon {
         for self_side in self_sides.iter() {
             for other_side in other_sides.iter() {
                 if geom::lines_intersect(self_side.0, self_side.1, other_side.0, other_side.1) {
-                    return true
+                    return true;
                 }
             }
         }
@@ -167,12 +166,12 @@ impl Polygon {
         // If that wasn't true check if the first point of the other is inside this polygon.
         // the only way this could be true is if all the points are inside so we only need to check the first one
         if self.contains(other.points[0]) {
-            return true
+            return true;
         }
 
         // Also possible that the other one entirely contains this one
         if other.contains(self.points[0]) {
-            return true
+            return true;
         }
 
         // now we know that other does not intersect with this polygon
@@ -205,8 +204,6 @@ impl Polygon {
 
         Polygon::new(new_points)
     }
-
-    
 }
 
 impl PartialEq for Polygon {
@@ -265,8 +262,24 @@ mod tests {
     }
 
     contains_tests!(
-        not_in: vec![Point::zero(), Point::new(0.0, 2.0), Point::new(2.0, 2.0), Point::new(2.0, 0.0)], Point::new(5.0, 1.0), false,
-        inside: vec![Point::zero(), Point::new(0.0, 2.0), Point::new(2.0, 2.0), Point::new(2.0, 0.0)], Point::new(1.0, 1.0), true,
+        not_in:
+            vec![
+                Point::zero(),
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0)
+            ],
+        Point::new(5.0, 1.0),
+        false,
+        inside:
+            vec![
+                Point::zero(),
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0)
+            ],
+        Point::new(1.0, 1.0),
+        true,
     );
 
     #[test]
@@ -376,7 +389,6 @@ mod tests {
         assert_f64!(result.area(), poly.area());
     }
 
-
     macro_rules! intersection_tests {
         ($($name:ident: $points_a:expr, $points_b:expr, $expected:expr,)*) => {
             $(
@@ -392,29 +404,71 @@ mod tests {
     }
 
     intersection_tests!(
-        non_intersecting: 
-            vec![Point::new(0.0, 0.0), Point::new(1.0, 1.0), Point::new(1.0, 0.0)], 
-            vec![Point::new(2.0, 2.0), Point::new(3.0, 3.0), Point::new(3.0, 2.0)], 
-            false,
-
+        non_intersecting:
+            vec![
+                Point::new(0.0, 0.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0)
+            ],
+        vec![
+            Point::new(2.0, 2.0),
+            Point::new(3.0, 3.0),
+            Point::new(3.0, 2.0)
+        ],
+        false,
         corner_intersecting:
-            vec![Point::new(0.0, 1.0), Point::new(1.0, 1.0), Point::new(1.0, 0.0)],
-            vec![Point::new(1.0, 1.0), Point::new(1.0, 2.0), Point::new(2.0, 1.0)],
-            true,
-        
+            vec![
+                Point::new(0.0, 1.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0)
+            ],
+        vec![
+            Point::new(1.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.0)
+        ],
+        true,
         overlapping:
-            vec![Point::new(0.0, 1.0), Point::new(1.0, 1.0), Point::new(1.0, 0.0), Point::new(0.0, 0.0)],
-            vec![Point::new(0.5, 1.5), Point::new(1.5, 1.5), Point::new(1.5, 0.5), Point::new(0.5, 0.5)],
-            true,
-
+            vec![
+                Point::new(0.0, 1.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0),
+                Point::new(0.0, 0.0)
+            ],
+        vec![
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+            Point::new(0.5, 0.5)
+        ],
+        true,
         containing:
-            vec![Point::new(0.0, 2.0), Point::new(2.0, 2.0), Point::new(2.0, 0.0), Point::new(0.0, 0.0)],
-            vec![Point::new(0.5, 1.5), Point::new(1.5, 1.5), Point::new(1.5, 0.5), Point::new(0.5, 0.5)],
-            true,
-
+            vec![
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0),
+                Point::new(0.0, 0.0)
+            ],
+        vec![
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+            Point::new(0.5, 0.5)
+        ],
+        true,
         contained:
-            vec![Point::new(0.5, 1.5), Point::new(1.5, 1.5), Point::new(1.5, 0.5), Point::new(0.5, 0.5)],
-            vec![Point::new(0.0, 2.0), Point::new(2.0, 2.0), Point::new(2.0, 0.0), Point::new(0.0, 0.0)],
-            true,
+            vec![
+                Point::new(0.5, 1.5),
+                Point::new(1.5, 1.5),
+                Point::new(1.5, 0.5),
+                Point::new(0.5, 0.5)
+            ],
+        vec![
+            Point::new(0.0, 2.0),
+            Point::new(2.0, 2.0),
+            Point::new(2.0, 0.0),
+            Point::new(0.0, 0.0)
+        ],
+        true,
     );
 }

@@ -74,7 +74,7 @@ impl Point {
 
         let result = translated.y.atan2(translated.x);
         if result < 0.0 {
-            return result + 360.0_f64.to_radians()
+            return result + 360.0_f64.to_radians();
         }
         result
     }
@@ -163,8 +163,6 @@ mod tests {
         let result = p.angle_to(&target);
         assert_f64!(result, 45.0_f64.to_radians());
     }
-
-
 
     #[test]
     fn rotate_a_point() {

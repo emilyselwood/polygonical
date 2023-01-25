@@ -43,17 +43,19 @@ impl BoundingBox {
         other.contains(Point::new(self.a.x, self.a.y))
             || other.contains(Point::new(self.b.x, self.a.y))
             || other.contains(Point::new(self.a.x, self.b.y))
-            || other.contains(Point::new(self.b.x, self.b.y)) 
+            || other.contains(Point::new(self.b.x, self.b.y))
             || self.contains(Point::new(other.a.x, other.a.y))
             || self.contains(Point::new(other.b.x, other.a.y))
             || self.contains(Point::new(other.a.x, other.b.y))
-            || self.contains(Point::new(other.b.x, other.b.y)) 
-            || (
-                other.a.x >= self.a.x && other.b.x <= self.b.x && self.a.y >= other.a.y && self.b.y <= other.b.y
-            )
-            || (
-                other.a.y >= self.a.y && other.b.y <= self.b.y && self.a.x >= other.a.x && self.b.x <= other.b.x
-            )
+            || self.contains(Point::new(other.b.x, other.b.y))
+            || (other.a.x >= self.a.x
+                && other.b.x <= self.b.x
+                && self.a.y >= other.a.y
+                && self.b.y <= other.b.y)
+            || (other.a.y >= self.a.y
+                && other.b.y <= self.b.y
+                && self.a.x >= other.a.x
+                && self.b.x <= other.b.x)
     }
 }
 
@@ -101,5 +103,4 @@ mod tests {
         entirely_contains: (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), (Point::new(0.0, 0.0), Point::new(3.0, 3.0)), true,
         just_corner: (Point::new(0.0, 0.0), Point::new(1.0, 1.0)), (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), true,
     );
-
 }
