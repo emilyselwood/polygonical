@@ -89,14 +89,26 @@ mod tests {
         ));
     }
 
-    #[test]
-    fn triangle_area() {
-        let result = area_of_triangle(
-            Point::new(0.0, 1.0),
-            Point::new(3.0, 6.0),
-            Point::new(6.0, 2.0),
-        );
-
-        assert!(approx_eq!(f64, result, 13.5, ulps = 2))
+    macro_rules! triangle_area_test {
+        ($($name:ident: $value:expr,$expected:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let result = area_of_triangle($value.0, $value.1, $value.2);
+                    assert!(approx_eq!(f64, result, $expected, ulps = 2))
+                }
+            )*
+        };
     }
+
+    triangle_area_test!(
+        ta_test1: (Point::new(0.0, 0.0), Point::new(1.0, 0.0), Point::new(0.0, 0.0)), 0.0,
+        ta_test2: (Point::new(0.0, 0.0), Point::new(0.0, 0.0), Point::new(0.0, 1.0)), 0.0,
+        ta_test3: (Point::new(0.0, 1.0), Point::new(3.0, 6.0), Point::new(6.0, 2.0)), 13.5,
+
+        ta_test4: (Point::new(0.0, 0.0), Point::new(1.0, 0.0), Point::new(0.0, 0.0)), 0.0,
+        ta_test5: (Point::new(0.0, 0.0), Point::new(0.0, 0.0), Point::new(0.0, 1.0)), 0.0,
+        ta_test6: (Point::new(0.0, 0.0), Point::new(0.0, 1.0), Point::new(1.0, 1.0)), 0.5,
+        ta_test7: (Point::new(0.0, 0.0), Point::new(1.0, 1.0), Point::new(1.0, 0.0)), 0.5,
+    );
 }

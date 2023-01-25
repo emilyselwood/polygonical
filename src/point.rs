@@ -75,6 +75,14 @@ impl Point {
         translated.x.atan2(translated.y)
     }
 
+    /// Rotate the given point around the origin by angle radians.
+    pub fn rotate(&self, angle: f64) -> Point {
+        Point {
+            x: (self.x * angle.cos()) - (self.y * angle.sin()),
+            y: (self.y * angle.cos()) + (self.x * angle.sin()),
+        }
+    }
+
     // TODO: bring in the travel code
 }
 
@@ -87,7 +95,8 @@ impl fmt::Display for Point {
 impl PartialEq for Point {
     // float equal is always evil, but we will use approx_eq here to give us a reasonable answer.
     fn eq(&self, other: &Self) -> bool {
-        approx_eq!(f64, self.x, other.x, ulps = 2) && approx_eq!(f64, self.y, other.y, ulps = 2)
+        approx_eq!(f64, self.x, other.x, epsilon = 0.000003, ulps = 2)
+            && approx_eq!(f64, self.y, other.y, epsilon = 0.000003, ulps = 2)
     }
 }
 
@@ -133,5 +142,21 @@ mod tests {
         let result = p.angle_to(&target);
         println!("{}", result);
         assert!(approx_eq!(f64, result, 45.0 * (PI / 180.0), ulps = 2))
+    }
+
+    #[test]
+    fn rotate_a_point() {
+        let p = Point::new(1.0, 0.0);
+        let result = p.rotate(90.0_f64.to_radians());
+
+        assert_eq!(result, Point::new(0.0, 1.0))
+    }
+
+    #[test]
+    fn rotate_origin() {
+        let p = Point::zero();
+        let result = p.rotate(90.0_f64.to_radians());
+
+        assert_eq!(result, p);
     }
 }

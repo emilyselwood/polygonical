@@ -1,6 +1,6 @@
 # Polygonical
 
-A library for interacting with polygons on a 2d plain.
+A library for interacting with polygons on a 2d plane.
 
 ## Design goals
 
@@ -20,13 +20,13 @@ In that order
 * Polygon is_self_intersecting
 * Polygon area
 * Translations of polygons
+* Rotations of points
+* Rotations of polygons
 
 ## Wanted Features
 
 Things we want to implement but haven't yet.
 
-* Rotations of points
-* Rotations of polygons
 * Scale of points
 * Scale of polygons
 * Overlap detection

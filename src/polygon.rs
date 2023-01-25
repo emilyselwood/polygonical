@@ -1,10 +1,14 @@
 use float_cmp::approx_eq;
 
 use crate::{boundingbox::BoundingBox, geom, point::Point};
-use std::f64::consts::PI;
+use std::{
+    f64::consts::PI,
+    fmt::{self, Display},
+    iter::zip,
+};
 
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
-
+#[derive(Debug, Clone)]
 pub struct Polygon {
     pub points: Vec<Point>,
     pub bounds: BoundingBox,
@@ -85,11 +89,11 @@ impl Polygon {
             panic!("Can not calculate the area of a self intersecting polygon")
         }
 
-        let mut triangle_sum = 0.0;
         let sides = self.sides();
-        for s in sides.iter().take(sides.len() - 1) {
-            triangle_sum += geom::area_of_triangle(Point::zero(), s.0, s.1)
-        }
+        let triangle_sum = sides
+            .iter()
+            .map(|s| geom::area_of_triangle(Point::zero(), s.0, s.1))
+            .sum();
 
         triangle_sum
     }
@@ -115,11 +119,7 @@ impl Polygon {
             return false;
         }
 
-        let mut total: f64 = 0.0;
-
-        for point in self.points.iter() {
-            total += p.angle_to(point);
-        }
+        let total: f64 = self.points.iter().map(|point| p.angle_to(point)).sum();
 
         approx_eq!(f64, total.abs(), 2.0 * PI, ulps = 2)
     }
@@ -129,10 +129,68 @@ impl Polygon {
         let points = self.points.iter().map(|point| point.translate(p)).collect();
         Polygon::new(points)
     }
+
+    /// Rotate a polygon counter clockwise around its center point by angle radians
+    pub fn rotate_around_center(&self, angle: f64) -> Polygon {
+        let center = self.center();
+        let center_inv = center.invert();
+
+        let new_points = self
+            .points
+            .iter()
+            .map(|p| p.translate(center_inv).rotate(angle).translate(center))
+            .collect();
+
+        Polygon::new(new_points)
+    }
+
+    /// Rotate the entire polygon counter clockwise around the origin by angle radians
+    pub fn rotate_around_origin(&self, angle: f64) -> Polygon {
+        let new_points = self.points.iter().map(|p| p.rotate(angle)).collect();
+
+        Polygon::new(new_points)
+    }
+}
+
+impl PartialEq for Polygon {
+    fn eq(&self, other: &Self) -> bool {
+        // if all the points in both polygons are equal then they are equal
+        if other.len() != self.len() {
+            return false;
+        }
+
+        for (a, b) in zip(self.points.iter(), other.points.iter()) {
+            if a != b {
+                return false;
+            }
+        }
+
+        true
+    }
+}
+
+impl Display for Polygon {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "Poly(")?;
+
+        let mut first = true;
+        for p in self.points.iter() {
+            if !first {
+                write!(formatter, ", ")?;
+            } else {
+                first = false;
+            }
+            p.fmt(formatter)?;
+        }
+
+        write!(formatter, ")")
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use float_cmp::approx_eq;
+
     use crate::boundingbox::BoundingBox;
     use crate::point::Point;
 
@@ -172,5 +230,89 @@ mod tests {
         ]);
 
         assert!(!poly.is_self_intersecting())
+    }
+
+    #[test]
+    fn sides_square() {
+        let poly = Polygon::new(vec![
+            Point::new(1.0, 0.0),
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+        ]);
+
+        let result = poly.sides();
+
+        let expected = vec![
+            (Point::new(1.0, 0.0), Point::new(0.0, 0.0)),
+            (Point::new(0.0, 0.0), Point::new(0.0, 1.0)),
+            (Point::new(0.0, 1.0), Point::new(1.0, 1.0)),
+            (Point::new(1.0, 1.0), Point::new(1.0, 0.0)),
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn check_area() {
+        let poly = Polygon::new(vec![
+            Point::new(1.0, 0.0),
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+        ]);
+
+        let result = poly.area();
+
+        println!("result area: {} expected area: 1", result);
+        assert!(approx_eq!(f64, result, 1.0, ulps = 2))
+    }
+
+    #[test]
+    fn rotate_square() {
+        let poly = Polygon::new(vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+            Point::new(1.0, 0.0),
+        ]);
+
+        let result = poly.rotate_around_center(90.0_f64.to_radians());
+
+        println!("result: {}", result);
+
+        // area should be the same after rotating the polygon
+        assert!(approx_eq!(f64, result.area(), poly.area(), ulps = 2));
+
+        let expected = Polygon::new(vec![
+            Point::new(1.0, 0.0),
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+        ]);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn rotate_square_around_origin() {
+        let poly = Polygon::new(vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+            Point::new(1.0, 0.0),
+        ]);
+
+        let result = poly.rotate_around_origin(90.0_f64.to_radians());
+        let expected = Polygon::new(vec![
+            Point::new(0.0, 0.0),
+            Point::new(-1.0, 0.0),
+            Point::new(-1.0, 1.0),
+            Point::new(0.0, 1.0),
+        ]);
+
+        assert_eq!(result, expected);
+
+        assert_eq!(result.area(), poly.area());
     }
 }
