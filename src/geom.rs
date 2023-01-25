@@ -102,7 +102,7 @@ mod tests {
     }
 
     triangle_area_test!(
-        ta_test1: (Point::new(0.0, 0.0), Point::new(1.0, 0.0), Point::new(0.0, 0.0)), 0.0, 
+        ta_test1: (Point::new(0.0, 0.0), Point::new(1.0, 0.0), Point::new(0.0, 0.0)), 0.0,
         ta_test2: (Point::new(0.0, 0.0), Point::new(0.0, 0.0), Point::new(0.0, 1.0)), 0.0,
         ta_test3: (Point::new(0.0, 1.0), Point::new(3.0, 6.0), Point::new(6.0, 2.0)), 13.5,
 
