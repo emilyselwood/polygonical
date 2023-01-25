@@ -63,11 +63,10 @@ fn matrix_determinant(a: f64, b: f64, c: f64, d: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use float_cmp::approx_eq;
-
-    use crate::geom::area_of_triangle;
-    use crate::geom::lines_intersect;
-    use crate::geom::Point;
+    use super::area_of_triangle;
+    use super::lines_intersect;
+    use crate::point::Point;
+    use crate::tests::assert_f64;
 
     #[test]
     fn does_not_intersect() {
@@ -95,7 +94,7 @@ mod tests {
                 #[test]
                 fn $name() {
                     let result = area_of_triangle($value.0, $value.1, $value.2);
-                    assert!(approx_eq!(f64, result, $expected, ulps = 2))
+                    assert_f64!(result, $expected);
                 }
             )*
         };

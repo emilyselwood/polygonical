@@ -2,11 +2,11 @@ use float_cmp::approx_eq;
 
 use crate::{boundingbox::BoundingBox, geom, point::Point};
 use std::{
-    f64::consts::PI,
     fmt::{self, Display},
     iter::zip,
 };
 
+/// Polygon describes the
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
 #[derive(Debug, Clone)]
 pub struct Polygon {
@@ -119,9 +119,63 @@ impl Polygon {
             return false;
         }
 
-        let total: f64 = self.points.iter().map(|point| p.angle_to(point)).sum();
+        // work out the sum of the angles between adjacent points and the point we are checking.
+        // if the sum is equal to 360 degrees then we are inside the polygon.
+        let mut total = 0.0;
 
-        approx_eq!(f64, total.abs(), 2.0 * PI, ulps = 2)
+        for i in 0..self.points.len() {
+            let (p1, p2) = self.get_side(i);
+            let angle_a = p.angle_to(&p2);
+            let angle_b = p.angle_to(&p1);
+
+            // handle rolling around over the 360/0 degree line reasonably
+            let result = if angle_a > angle_b {
+                -((360.0_f64.to_radians() - angle_a) + angle_b)
+            } else {
+                angle_a - angle_b
+            };
+
+            total += result;
+        }
+        approx_eq!(f64, total.abs(), 360.0_f64.to_radians(), ulps = 2)
+    }
+
+    /// Returns true if any part of the other polygon overlaps this one.
+    /// Entirely containing other or being contained by other counts here.
+    /// Note: this has worst case runtime on two polygons that don't intersect but their bounding boxes do.
+    /// O(n^2) where n is the sum of the number of sides in the two polygons
+    pub fn intersects(&self, other: &Polygon) -> bool {
+        // first check if the bounding boxes intersect as a quicker check
+        if !self.bounds.intersects(&other.bounds) {
+            return false;
+        }
+
+        // if any other sides intersect then the two polygons intersect
+        // This also checks any of the points being the same due to the way the lines_intersect algorithm works
+        let self_sides = self.sides();
+        let other_sides = other.sides();
+
+        for self_side in self_sides.iter() {
+            for other_side in other_sides.iter() {
+                if geom::lines_intersect(self_side.0, self_side.1, other_side.0, other_side.1) {
+                    return true;
+                }
+            }
+        }
+
+        // If that wasn't true check if the first point of the other is inside this polygon.
+        // the only way this could be true is if all the points are inside so we only need to check the first one
+        if self.contains(other.points[0]) {
+            return true;
+        }
+
+        // Also possible that the other one entirely contains this one
+        if other.contains(self.points[0]) {
+            return true;
+        }
+
+        // now we know that other does not intersect with this polygon
+        false
     }
 
     /// Move this polygon by point p
@@ -191,22 +245,42 @@ impl Display for Polygon {
 mod tests {
     use float_cmp::approx_eq;
 
-    use crate::boundingbox::BoundingBox;
-    use crate::point::Point;
+    use crate::{point::Point, tests::assert_f64};
 
     use super::Polygon;
 
-    #[test]
-    fn does_not_contain() {
-        let bbox = BoundingBox::new(Point::zero(), Point::new(2.0, 2.0)).to_polygon();
-        assert!(!bbox.contains(Point::new(5.0, 1.0)))
+    macro_rules! contains_tests {
+        ($($name:ident: $poly_points:expr, $test_point:expr, $expected:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let poly = Polygon::new($poly_points);
+                    assert_eq!(poly.contains($test_point), $expected);
+                }
+            )*
+        };
     }
 
-    #[test]
-    fn does_contain() {
-        let bbox = BoundingBox::new(Point::zero(), Point::new(2.0, 2.0)).to_polygon();
-        assert!(!bbox.contains(Point::new(1.0, 1.0)))
-    }
+    contains_tests!(
+        not_in:
+            vec![
+                Point::zero(),
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0)
+            ],
+        Point::new(5.0, 1.0),
+        false,
+        inside:
+            vec![
+                Point::zero(),
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0)
+            ],
+        Point::new(1.0, 1.0),
+        true,
+    );
 
     #[test]
     fn is_self_intersecting() {
@@ -264,8 +338,7 @@ mod tests {
 
         let result = poly.area();
 
-        println!("result area: {} expected area: 1", result);
-        assert!(approx_eq!(f64, result, 1.0, ulps = 2))
+        assert_f64!(result, 1.0);
     }
 
     #[test]
@@ -282,7 +355,7 @@ mod tests {
         println!("result: {}", result);
 
         // area should be the same after rotating the polygon
-        assert!(approx_eq!(f64, result.area(), poly.area(), ulps = 2));
+        assert_f64!(result.area(), poly.area());
 
         let expected = Polygon::new(vec![
             Point::new(1.0, 0.0),
@@ -313,6 +386,89 @@ mod tests {
 
         assert_eq!(result, expected);
 
-        assert_eq!(result.area(), poly.area());
+        assert_f64!(result.area(), poly.area());
     }
+
+    macro_rules! intersection_tests {
+        ($($name:ident: $points_a:expr, $points_b:expr, $expected:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let a = Polygon::new($points_a);
+                    let b = Polygon::new($points_b);
+
+                    assert_eq!(a.intersects(&b), $expected);
+                }
+            )*
+        };
+    }
+
+    intersection_tests!(
+        non_intersecting:
+            vec![
+                Point::new(0.0, 0.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0)
+            ],
+        vec![
+            Point::new(2.0, 2.0),
+            Point::new(3.0, 3.0),
+            Point::new(3.0, 2.0)
+        ],
+        false,
+        corner_intersecting:
+            vec![
+                Point::new(0.0, 1.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0)
+            ],
+        vec![
+            Point::new(1.0, 1.0),
+            Point::new(1.0, 2.0),
+            Point::new(2.0, 1.0)
+        ],
+        true,
+        overlapping:
+            vec![
+                Point::new(0.0, 1.0),
+                Point::new(1.0, 1.0),
+                Point::new(1.0, 0.0),
+                Point::new(0.0, 0.0)
+            ],
+        vec![
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+            Point::new(0.5, 0.5)
+        ],
+        true,
+        containing:
+            vec![
+                Point::new(0.0, 2.0),
+                Point::new(2.0, 2.0),
+                Point::new(2.0, 0.0),
+                Point::new(0.0, 0.0)
+            ],
+        vec![
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+            Point::new(0.5, 0.5)
+        ],
+        true,
+        contained:
+            vec![
+                Point::new(0.5, 1.5),
+                Point::new(1.5, 1.5),
+                Point::new(1.5, 0.5),
+                Point::new(0.5, 0.5)
+            ],
+        vec![
+            Point::new(0.0, 2.0),
+            Point::new(2.0, 2.0),
+            Point::new(2.0, 0.0),
+            Point::new(0.0, 0.0)
+        ],
+        true,
+    );
 }
