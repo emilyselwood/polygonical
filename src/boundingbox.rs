@@ -32,9 +32,9 @@ impl BoundingBox {
     pub fn to_polygon(&self) -> Polygon {
         let points = vec![
             Point::new(self.a.x, self.a.y),
-            Point::new(self.b.x, self.a.y),
             Point::new(self.a.x, self.b.y),
             Point::new(self.b.x, self.b.y),
+            Point::new(self.b.x, self.a.y),
         ];
         Polygon::new(points)
     }
@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn does_contain() {
         let bbox = BoundingBox::new(Point::zero(), Point::new(2.0, 2.0));
-        assert!(!bbox.contains(Point::new(1.0, 1.0)))
+        assert!(bbox.contains(Point::new(1.0, 1.0)))
     }
 
     macro_rules! intersection_tests {
@@ -99,6 +99,7 @@ mod tests {
         cross_intersecting: (Point::new(1.0, 0.0), Point::new(2.0, 3.0)), (Point::new(0.0, 1.0), Point::new(3.0, 2.0)), true,
         entirely_contained: (Point::new(0.0, 0.0), Point::new(3.0, 3.0)), (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), true,
         entirely_contains: (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), (Point::new(0.0, 0.0), Point::new(3.0, 3.0)), true,
+        just_corner: (Point::new(0.0, 0.0), Point::new(1.0, 1.0)), (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), true,
     );
 
 }

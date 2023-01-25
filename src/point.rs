@@ -69,10 +69,14 @@ impl Point {
     }
 
     /// Return the angle in radians to another point
-    pub fn angle_to(self, other: &Point) -> f64 {
+    pub fn angle_to(&self, other: &Point) -> f64 {
         let translated = other.translate(self.invert());
 
-        translated.x.atan2(translated.y)
+        let result = translated.y.atan2(translated.x);
+        if result < 0.0 {
+            return result + 360.0_f64.to_radians()
+        }
+        result
     }
 
     /// Rotate the given point around the origin by angle radians.
@@ -129,20 +133,38 @@ impl From<(i32, i32)> for Point {
 #[cfg(test)]
 mod tests {
 
-    use std::f64::consts::PI;
-
-    use float_cmp::approx_eq;
-
     use crate::point::Point;
+
+    use crate::tests::assert_f64;
+
+    macro_rules! angle_tests {
+        ($($name:ident: $point_a:expr, $point_b:expr, $expected:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    assert_f64!($point_a.angle_to(&$point_b), $expected.to_radians());
+                }
+            )*
+        };
+    }
+    angle_tests!(
+        angle_zero: Point::new(2.0, 1.0), Point::new(3.0, 1.0), 0.0_f64,
+        angle_45: Point::new(2.0, 1.0), Point::new(3.0, 2.0), 45.0_f64,
+        angle_90: Point::new(2.0, 1.0), Point::new(2.0, 2.0), 90.0_f64,
+        angle_180: Point::new(2.0, 1.0), Point::new(1.0, 1.0), 180.0_f64,
+        angle_270: Point::new(2.0, 1.0), Point::new(2.0, 0.0), 270.0_f64,
+    );
+
     #[test]
     fn angle_to() {
         let p = Point::new(2.0, 1.0);
         let target = Point::new(3.0, 2.0);
 
         let result = p.angle_to(&target);
-        println!("{}", result);
-        assert!(approx_eq!(f64, result, 45.0 * (PI / 180.0), ulps = 2))
+        assert_f64!(result, 45.0_f64.to_radians());
     }
+
+
 
     #[test]
     fn rotate_a_point() {
