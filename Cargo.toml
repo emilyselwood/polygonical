@@ -3,7 +3,7 @@ name = "polygonical"
 description = "2d polygon geometry and operations"
 keywords = ["2d", "geometry", "polygon"]
 license = "MIT"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = [
     "Emily Selwood",

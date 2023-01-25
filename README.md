@@ -60,6 +60,8 @@ Create an approximation of a circle:
 * Translations of polygons
 * Rotations of points
 * Rotations of polygons
+* Overlap detection
+* Contains detection
 
 ## Wanted Features
 
@@ -67,11 +69,8 @@ Things we want to implement but haven't yet.
 
 * Scale of points
 * Scale of polygons
-* Overlap detection
-* Contains detection
 * Polygon unions
 * Polygon subtraction
-
 
 ## Unwanted Features
 
@@ -88,3 +87,8 @@ Things this library won't do.
 * Fast
 
 In that order
+
+## Limitations / Warnings
+
+Polygons must be specified with the points going clockwise around them. Due to the way the contains point algorithm
+handles angles rolling over 360/0 degrees any function that relies on that algorithm will not work as expected.
