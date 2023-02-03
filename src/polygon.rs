@@ -3,10 +3,10 @@ use float_cmp::approx_eq;
 use crate::{boundingbox::BoundingBox, geom, point::Point};
 use std::{
     fmt::{self, Display},
-    iter::zip,
+    iter::zip, mem,
 };
 
-/// Polygon describes the
+/// Polygon describes a the points around the edge of a shape. It can only contain and single path, no holes
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
 #[derive(Debug, Clone)]
 pub struct Polygon {
@@ -53,9 +53,19 @@ impl Polygon {
 
     /// Return a vector of point pairs for every side of this polygon, in order.
     pub fn sides(&self) -> Vec<(Point, Point)> {
+        self.sides_from(0)
+    }
+
+    fn sides_from(&self, start: usize) -> Vec<(Point, Point)> {
         let mut result = Vec::new();
 
-        for i in 0..self.len() {
+        // include the first half of the list
+        for i in start..self.len() {
+            result.push(self.get_side(i));
+        }
+
+        // now create the other bit.
+        for i in 0..start {
             result.push(self.get_side(i));
         }
 
@@ -203,6 +213,55 @@ impl Polygon {
         let new_points = self.points.iter().map(|p| p.rotate(angle)).collect();
 
         Polygon::new(new_points)
+    }
+
+    pub fn union(&self, other: &Polygon) -> Polygon {
+        let mut result_points = Vec::new();
+        result_points.push(self.points[0]);
+        let mut current = self;
+        let mut not_current = other;
+
+        let mut current_index = 0;
+        let mut other_index = 0;
+        while current_index < current.len() {
+            // get a side
+
+            let current_side = current.get_side(current_index);
+            // look for an intersecting side in the other one.
+            let not_current_sides = not_current.sides_from(other_index);
+            let intersects_with =
+                geom::line_intersects_others(current_side, &not_current_sides);
+            if let Some(oi) = intersects_with {
+                let other_line = not_current_sides[oi];
+
+                // Find the point of intersection (we can be pretty sure this intersects as we checked just now)
+                let point = geom::point_of_intersection(current_side.0, current_side.1, other_line.0, other_line.1).unwrap();
+
+                // add that point to the list
+                result_points.push(point);
+                // add the end of the intersecting line to the list, a two straight lines cant intersect twice.
+                // At least not in this simple flat plain universe.
+                result_points.push(other_line.1);
+
+                // swap current and other
+                mem::swap(&mut current, &mut not_current);
+
+                // set other_index to current_index, don't add one because this might cross back over this line again
+                other_index = current_index;
+                // set current_index to intersects_with+1
+                let mut target_index = other_index + oi;
+                if target_index > not_current.len() {
+                    target_index -= not_current.len();
+                }
+                current_index = target_index;
+            } else {
+                // Nothing intersects with this side so we can add the new end to the result list.
+                result_points.push(current_side.1);
+                current_index += 1;
+            }
+        }
+
+        Polygon::new(result_points)
     }
 }
 
@@ -352,8 +411,6 @@ mod tests {
 
         let result = poly.rotate_around_center(90.0_f64.to_radians());
 
-        println!("result: {}", result);
-
         // area should be the same after rotating the polygon
         assert_f64!(result.area(), poly.area());
 
@@ -471,4 +528,37 @@ mod tests {
         ],
         true,
     );
+
+
+    #[test]
+    fn basic_union() {
+        let a = Polygon::new(vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(1.0, 1.0),
+            Point::new(1.0, 0.0),
+        ]);
+        
+        let b = Polygon::new(vec![
+            Point::new(0.5, 0.5),
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+        ]);
+
+        let expected = Polygon::new(vec![
+            Point::new(0.0, 0.0),
+            Point::new(0.0, 1.0),
+            Point::new(0.5, 1.0),
+            Point::new(0.5, 1.5),
+            Point::new(1.5, 1.5),
+            Point::new(1.5, 0.5),
+            Point::new(1.0, 0.5),
+            Point::new(1.0, 0.0),
+        ]);
+
+        let result = a.union(&b);
+        
+        assert_eq!(result, expected);
+    }
 }
