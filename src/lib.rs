@@ -1,8 +1,8 @@
 #![doc = include_str!("../README.md")]
 
 pub mod boundingbox;
-pub mod point;
 pub mod line;
+pub mod point;
 pub mod polygon;
 
 mod geom;

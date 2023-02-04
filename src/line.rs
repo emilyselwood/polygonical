@@ -1,8 +1,6 @@
 use std::fmt;
 
-use crate::{point::Point, geom};
-
-
+use crate::{geom, point::Point};
 
 /// Represents a line between two points.
 pub struct Line {
@@ -11,9 +9,8 @@ pub struct Line {
 }
 
 impl Line {
-
     pub fn new(a: Point, b: Point) -> Self {
-        Line{a, b}
+        Line { a, b }
     }
 
     pub fn intersects_with(&self, other: &Self) -> bool {
@@ -23,7 +20,6 @@ impl Line {
     pub fn point_of_intersection(&self, other: &Self) -> Option<Point> {
         geom::point_of_intersection(self.a, self.b, other.a, other.b)
     }
-
 }
 
 impl fmt::Display for Line {

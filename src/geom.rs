@@ -20,14 +20,13 @@ pub fn point_of_intersection(a: Point, b: Point, c: Point, d: Point) -> Option<P
     let determinant = a1 * b2 - a2 * b1;
 
     if determinant == 0.0 {
-
         // they might be parallel but overlap so check if the start of the second line is in side the first.
         let x_r = (b.x - c.x) / (b.x - a.x);
         let y_r = (b.y - c.y) / (b.y - a.y);
         if x_r > 0.0 && x_r < 1.0 && y_r > 0.0 && y_r < 1.0 {
-            return Some(c)
+            return Some(c);
         }
-        return None
+        return None;
     }
 
     let x = (b2 * c1 - b1 * c2) / determinant;
