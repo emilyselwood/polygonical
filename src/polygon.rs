@@ -215,6 +215,8 @@ impl Polygon {
         Polygon::new(new_points)
     }
 
+
+    /// Create a new polygon that is the union of this polygon and the other polygon provided.
     pub fn union(&self, other: &Polygon) -> Polygon {
         let mut result_points = Vec::new();
         result_points.push(self.points[0]);
@@ -248,7 +250,7 @@ impl Polygon {
 
                 // set other_index to current_index, don't add one because this might cross back over this line again
                 other_index = current_index;
-                // set current_index to intersects_with+1
+                // set current_index to intersects_with
                 let mut target_index = other_index + oi;
                 if target_index > not_current.len() {
                     target_index -= not_current.len();
@@ -263,6 +265,8 @@ impl Polygon {
 
         Polygon::new(result_points)
     }
+
+    
 }
 
 impl PartialEq for Polygon {
