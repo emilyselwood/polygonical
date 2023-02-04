@@ -3,7 +3,8 @@ use float_cmp::approx_eq;
 use crate::{boundingbox::BoundingBox, geom, point::Point};
 use std::{
     fmt::{self, Display},
-    iter::zip, mem,
+    iter::zip,
+    mem,
 };
 
 /// Polygon describes a the points around the edge of a shape. It can only contain and single path, no holes
@@ -215,7 +216,6 @@ impl Polygon {
         Polygon::new(new_points)
     }
 
-
     /// Create a new polygon that is the union of this polygon and the other polygon provided.
     pub fn union(&self, other: &Polygon) -> Polygon {
         let mut result_points = Vec::new();
@@ -231,13 +231,18 @@ impl Polygon {
             let current_side = current.get_side(current_index);
             // look for an intersecting side in the other one.
             let not_current_sides = not_current.sides_from(other_index);
-            let intersects_with =
-                geom::line_intersects_others(current_side, &not_current_sides);
+            let intersects_with = geom::line_intersects_others(current_side, &not_current_sides);
             if let Some(oi) = intersects_with {
                 let other_line = not_current_sides[oi];
 
                 // Find the point of intersection (we can be pretty sure this intersects as we checked just now)
-                let point = geom::point_of_intersection(current_side.0, current_side.1, other_line.0, other_line.1).unwrap();
+                let point = geom::point_of_intersection(
+                    current_side.0,
+                    current_side.1,
+                    other_line.0,
+                    other_line.1,
+                )
+                .unwrap();
 
                 // add that point to the list
                 result_points.push(point);
@@ -265,8 +270,6 @@ impl Polygon {
 
         Polygon::new(result_points)
     }
-
-    
 }
 
 impl PartialEq for Polygon {
@@ -533,7 +536,6 @@ mod tests {
         true,
     );
 
-
     #[test]
     fn basic_union() {
         let a = Polygon::new(vec![
@@ -542,7 +544,7 @@ mod tests {
             Point::new(1.0, 1.0),
             Point::new(1.0, 0.0),
         ]);
-        
+
         let b = Polygon::new(vec![
             Point::new(0.5, 0.5),
             Point::new(0.5, 1.5),
@@ -562,7 +564,7 @@ mod tests {
         ]);
 
         let result = a.union(&b);
-        
+
         assert_eq!(result, expected);
     }
 }
