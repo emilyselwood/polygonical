@@ -9,8 +9,9 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(x: f64, y: f64) -> Self {
-        Point { x, y }
+    pub fn new<T>(x: T, y: T) -> Self 
+    where T: Into<f64>{
+        Point { x: x.into(), y: y.into() }
     }
 
     /// Create a point at the origin
@@ -136,6 +137,13 @@ mod tests {
     use crate::point::Point;
 
     use crate::tests::assert_f64;
+
+    #[test]
+    fn from_int() {
+        let p = Point::new(1, 5);
+        assert_eq!(p.x, 1.0);
+        assert_eq!(p.y, 5.0);
+    }
 
     macro_rules! angle_tests {
         ($($name:ident: $point_a:expr, $point_b:expr, $expected:expr,)*) => {
