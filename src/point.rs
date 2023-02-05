@@ -9,9 +9,14 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new<T>(x: T, y: T) -> Self 
-    where T: Into<f64>{
-        Point { x: x.into(), y: y.into() }
+    pub fn new<T>(x: T, y: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        Point {
+            x: x.into(),
+            y: y.into(),
+        }
     }
 
     /// Create a point at the origin
