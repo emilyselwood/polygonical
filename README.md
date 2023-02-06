@@ -37,7 +37,7 @@ Create an approximation of a circle:
 
     // Note: we use an integer number of degrees here because rust won't let you iterate over floats like this.
     let points = (0..360).step_by(360/num_points)
-        .map(|a| Point::new(radius, 0.0).rotate((a as f64).to_radians()).translate(center))
+        .map(|a| Point::new(radius, 0.0).rotate((a as f64).to_radians()).translate(&center))
         .collect();
 
     let circle = Polygon::new(points);

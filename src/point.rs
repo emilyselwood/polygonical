@@ -1,3 +1,4 @@
+//!Point types and helpers around them
 use std::fmt;
 
 use float_cmp::approx_eq;
@@ -43,7 +44,7 @@ impl Point {
     }
 
     /// Given another point return the min of the x and y values
-    pub fn min(self, other: Point) -> Point {
+    pub fn min(&self, other: &Point) -> Point {
         Point {
             x: self.x.min(other.x),
             y: self.y.min(other.y),
@@ -51,7 +52,7 @@ impl Point {
     }
 
     /// Given another point return the max of the x and y values
-    pub fn max(self, other: Point) -> Point {
+    pub fn max(&self, other: &Point) -> Point {
         Point {
             x: self.x.max(other.x),
             y: self.y.max(other.y),
@@ -59,7 +60,7 @@ impl Point {
     }
 
     /// Flip the sign of both x and y coords
-    pub fn invert(self) -> Point {
+    pub fn invert(&self) -> Point {
         Point {
             x: -self.x,
             y: -self.y,
@@ -67,7 +68,7 @@ impl Point {
     }
 
     /// offset / translate this point by another one.
-    pub fn translate(self, by: Point) -> Point {
+    pub fn translate(&self, by: &Point) -> Point {
         Point {
             x: self.x + by.x,
             y: self.y + by.y,
@@ -76,7 +77,7 @@ impl Point {
 
     /// Return the angle in radians to another point
     pub fn angle_to(&self, other: &Point) -> f64 {
-        let translated = other.translate(self.invert());
+        let translated = other.translate(&self.invert());
 
         let result = translated.y.atan2(translated.x);
         if result < 0.0 {
@@ -92,8 +93,6 @@ impl Point {
             y: (self.y * angle.cos()) + (self.x * angle.sin()),
         }
     }
-
-    // TODO: bring in the travel code
 }
 
 impl fmt::Display for Point {
