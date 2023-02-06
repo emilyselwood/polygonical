@@ -191,7 +191,11 @@ impl Polygon {
 
     /// Move this polygon by point p
     pub fn translate(&self, p: Point) -> Polygon {
-        let points = self.points.iter().map(|point| point.translate(p)).collect();
+        let points = self
+            .points
+            .iter()
+            .map(|point| point.translate(&p))
+            .collect();
         Polygon::new(points)
     }
 
@@ -203,7 +207,7 @@ impl Polygon {
         let new_points = self
             .points
             .iter()
-            .map(|p| p.translate(center_inv).rotate(angle).translate(center))
+            .map(|p| p.translate(&center_inv).rotate(angle).translate(&center))
             .collect();
 
         Polygon::new(new_points)
@@ -309,7 +313,6 @@ impl Display for Polygon {
 
 #[cfg(test)]
 mod tests {
-    use float_cmp::approx_eq;
 
     use crate::{point::Point, tests::assert_f64};
 

@@ -4,8 +4,8 @@ use crate::{point::Point, polygon::Polygon};
 
 #[derive(Debug, Clone, Copy)]
 pub struct BoundingBox {
-    a: Point,
-    b: Point,
+    pub a: Point,
+    pub b: Point,
 }
 
 impl BoundingBox {
@@ -18,8 +18,8 @@ impl BoundingBox {
         let mut max = Point::new_min();
 
         for p in points {
-            min = p.min(min);
-            max = p.max(max);
+            min = p.min(&min);
+            max = p.max(&max);
         }
 
         BoundingBox { a: min, b: max }
@@ -57,6 +57,14 @@ impl BoundingBox {
                 && self.a.x >= other.a.x
                 && self.b.x <= other.b.x)
     }
+
+    pub fn width(&self) -> f64 {
+        self.b.x - self.a.x
+    }
+
+    pub fn height(&self) -> f64 {
+        self.b.y - self.a.y
+    }
 }
 
 impl fmt::Display for BoundingBox {
@@ -67,8 +75,10 @@ impl fmt::Display for BoundingBox {
 
 #[cfg(test)]
 mod tests {
+
     use crate::boundingbox::BoundingBox;
     use crate::point::Point;
+    use crate::tests::assert_f64;
 
     #[test]
     fn does_not_contain() {
@@ -103,4 +113,11 @@ mod tests {
         entirely_contains: (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), (Point::new(0.0, 0.0), Point::new(3.0, 3.0)), true,
         just_corner: (Point::new(0.0, 0.0), Point::new(1.0, 1.0)), (Point::new(1.0, 1.0), Point::new(2.0, 2.0)), true,
     );
+
+    #[test]
+    fn width_height() {
+        let bbox = BoundingBox::new(Point::new(2.0, 1.0), Point::new(4.0, 5.4));
+        assert_f64!(bbox.width(), 2.0);
+        assert_f64!(bbox.height(), 4.4);
+    }
 }
