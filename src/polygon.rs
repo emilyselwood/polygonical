@@ -2,24 +2,47 @@ use float_cmp::approx_eq;
 
 use crate::{boundingbox::BoundingBox, geom, point::Point};
 use std::{
+    error::Error,
     fmt::{self, Display},
     iter::zip,
     mem,
 };
 
-/// Polygon describes a the points around the edge of a shape. It can only contain and single path, no holes
+#[derive(Debug)]
+pub enum PolygonError {
+    TooFewPoints(usize),
+}
+
+impl fmt::Display for PolygonError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PolygonError::TooFewPoints(n) => {
+                write!(
+                    f,
+                    "Trying to create a polygon with {} points. You need at least 3",
+                    n
+                )
+            }
+        }
+    }
+}
+
+impl Error for PolygonError {}
+
+/// Polygon describes the points around the edge of a shape. It can only contain a single path, no holes
 #[allow(clippy::len_without_is_empty)] // a polygon can never be empty so an is_empty function would always return false.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, getset::Getters)]
+#[getset(get = "pub")]
 pub struct Polygon {
-    pub points: Vec<Point>,
-    pub bounds: BoundingBox,
+    points: Vec<Point>,
+    bounds: BoundingBox,
 }
 
 impl Polygon {
     /// Create a new polygon.
     ///
     /// The vector of points must contain at least 3 elements or this will panic.
-    pub fn new(points: Vec<Point>) -> Self {
+    pub fn new_unchecked(points: Vec<Point>) -> Self {
         if points.len() < 3 {
             panic!(
                 "Trying to create a polygon with {} points. You need at least 3",
@@ -29,6 +52,18 @@ impl Polygon {
 
         let bounds = BoundingBox::from_points(&points);
         Polygon { points, bounds }
+    }
+
+    /// Create a new polygon.
+    ///
+    /// The vector of points must contain at least 3 elements or this will return an error.
+    pub fn try_new(points: Vec<Point>) -> Result<Self, PolygonError> {
+        if points.len() < 3 {
+            return Err(PolygonError::TooFewPoints(points.len()));
+        }
+
+        let bounds = BoundingBox::from_points(&points);
+        Ok(Polygon { points, bounds })
     }
 
     // TODO: circles
@@ -115,8 +150,8 @@ impl Polygon {
         let mut y = 0.0;
 
         for p in self.points.iter() {
-            x += p.x;
-            y += p.y;
+            x += p.x();
+            y += p.y();
         }
         let len = self.len() as f64;
 
@@ -196,7 +231,8 @@ impl Polygon {
             .iter()
             .map(|point| point.translate(&p))
             .collect();
-        Polygon::new(points)
+        // NOTE: new_unchecked is safe as we have a valid polygon to begin with
+        Polygon::new_unchecked(points)
     }
 
     /// Rotate a polygon counter clockwise around its center point by angle radians
@@ -210,14 +246,14 @@ impl Polygon {
             .map(|p| p.translate(&center_inv).rotate(angle).translate(&center))
             .collect();
 
-        Polygon::new(new_points)
+        Polygon::new_unchecked(new_points)
     }
 
     /// Rotate the entire polygon counter clockwise around the origin by angle radians
     pub fn rotate_around_origin(&self, angle: f64) -> Polygon {
         let new_points = self.points.iter().map(|p| p.rotate(angle)).collect();
 
-        Polygon::new(new_points)
+        Polygon::new_unchecked(new_points)
     }
 
     /// Create a new polygon that is the union of this polygon and the other polygon provided.
@@ -246,7 +282,7 @@ impl Polygon {
                     other_line.0,
                     other_line.1,
                 )
-                .unwrap();
+                .expect("intersecting polygon");
 
                 // add that point to the list
                 result_points.push(point);
@@ -272,7 +308,7 @@ impl Polygon {
             }
         }
 
-        Polygon::new(result_points)
+        Polygon::new_unchecked(result_points)
     }
 }
 
@@ -323,7 +359,7 @@ mod tests {
             $(
                 #[test]
                 fn $name() {
-                    let poly = Polygon::new($poly_points);
+                    let poly = Polygon::new_unchecked($poly_points);
                     assert_eq!(poly.contains($test_point), $expected);
                 }
             )*
@@ -353,7 +389,7 @@ mod tests {
 
     #[test]
     fn is_self_intersecting() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(1.0, 0.0),
@@ -365,7 +401,7 @@ mod tests {
 
     #[test]
     fn is_not_self_intersecting() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(1.0, 1.0),
@@ -377,7 +413,7 @@ mod tests {
 
     #[test]
     fn sides_square() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(1.0, 0.0),
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
@@ -398,7 +434,7 @@ mod tests {
 
     #[test]
     fn check_area() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(1.0, 0.0),
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
@@ -412,7 +448,7 @@ mod tests {
 
     #[test]
     fn rotate_square() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(1.0, 1.0),
@@ -424,7 +460,7 @@ mod tests {
         // area should be the same after rotating the polygon
         assert_f64!(result.area(), poly.area());
 
-        let expected = Polygon::new(vec![
+        let expected = Polygon::new_unchecked(vec![
             Point::new(1.0, 0.0),
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
@@ -436,7 +472,7 @@ mod tests {
 
     #[test]
     fn rotate_square_around_origin() {
-        let poly = Polygon::new(vec![
+        let poly = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(1.0, 1.0),
@@ -444,7 +480,7 @@ mod tests {
         ]);
 
         let result = poly.rotate_around_origin(90.0_f64.to_radians());
-        let expected = Polygon::new(vec![
+        let expected = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(-1.0, 0.0),
             Point::new(-1.0, 1.0),
@@ -461,8 +497,8 @@ mod tests {
             $(
                 #[test]
                 fn $name() {
-                    let a = Polygon::new($points_a);
-                    let b = Polygon::new($points_b);
+                    let a = Polygon::new_unchecked($points_a);
+                    let b = Polygon::new_unchecked($points_b);
 
                     assert_eq!(a.intersects(&b), $expected);
                 }
@@ -541,21 +577,21 @@ mod tests {
 
     #[test]
     fn basic_union() {
-        let a = Polygon::new(vec![
+        let a = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(1.0, 1.0),
             Point::new(1.0, 0.0),
         ]);
 
-        let b = Polygon::new(vec![
+        let b = Polygon::new_unchecked(vec![
             Point::new(0.5, 0.5),
             Point::new(0.5, 1.5),
             Point::new(1.5, 1.5),
             Point::new(1.5, 0.5),
         ]);
 
-        let expected = Polygon::new(vec![
+        let expected = Polygon::new_unchecked(vec![
             Point::new(0.0, 0.0),
             Point::new(0.0, 1.0),
             Point::new(0.5, 1.0),

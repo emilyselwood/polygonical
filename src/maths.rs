@@ -1,3 +1,0 @@
-/*
-Maths helper functions. None of this is exposed outside the library
-*/

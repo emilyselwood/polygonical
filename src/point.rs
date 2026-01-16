@@ -3,10 +3,11 @@ use std::fmt;
 
 use float_cmp::approx_eq;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, getset::CopyGetters)]
+#[getset(get_copy = "pub")]
 pub struct Point {
-    pub x: f64,
-    pub y: f64,
+    x: f64,
+    y: f64,
 }
 
 impl Point {
@@ -46,32 +47,32 @@ impl Point {
     /// Given another point return the min of the x and y values
     pub fn min(&self, other: &Point) -> Point {
         Point {
-            x: self.x.min(other.x),
-            y: self.y.min(other.y),
+            x: self.x().min(other.x()),
+            y: self.y().min(other.y()),
         }
     }
 
     /// Given another point return the max of the x and y values
     pub fn max(&self, other: &Point) -> Point {
         Point {
-            x: self.x.max(other.x),
-            y: self.y.max(other.y),
+            x: self.x().max(other.x()),
+            y: self.y().max(other.y()),
         }
     }
 
     /// Flip the sign of both x and y coords
     pub fn invert(&self) -> Point {
         Point {
-            x: -self.x,
-            y: -self.y,
+            x: -self.x(),
+            y: -self.y(),
         }
     }
 
     /// offset / translate this point by another one.
     pub fn translate(&self, by: &Point) -> Point {
         Point {
-            x: self.x + by.x,
-            y: self.y + by.y,
+            x: self.x() + by.x(),
+            y: self.y() + by.y(),
         }
     }
 
@@ -79,7 +80,7 @@ impl Point {
     pub fn angle_to(&self, other: &Point) -> f64 {
         let translated = other.translate(&self.invert());
 
-        let result = translated.y.atan2(translated.x);
+        let result = translated.y().atan2(translated.x());
         if result < 0.0 {
             return result + 360.0_f64.to_radians();
         }
@@ -89,23 +90,23 @@ impl Point {
     /// Rotate the given point around the origin by angle radians.
     pub fn rotate(&self, angle: f64) -> Point {
         Point {
-            x: (self.x * angle.cos()) - (self.y * angle.sin()),
-            y: (self.y * angle.cos()) + (self.x * angle.sin()),
+            x: (self.x() * angle.cos()) - (self.y() * angle.sin()),
+            y: (self.y() * angle.cos()) + (self.x() * angle.sin()),
         }
     }
 }
 
 impl fmt::Display for Point {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "({}, {})", self.x, self.y)
+        write!(formatter, "({}, {})", self.x(), self.y())
     }
 }
 
 impl PartialEq for Point {
     // float equal is always evil, but we will use approx_eq here to give us a reasonable answer.
     fn eq(&self, other: &Self) -> bool {
-        approx_eq!(f64, self.x, other.x, epsilon = 0.000003, ulps = 2)
-            && approx_eq!(f64, self.y, other.y, epsilon = 0.000003, ulps = 2)
+        approx_eq!(f64, self.x(), other.x(), epsilon = 0.000003, ulps = 2)
+            && approx_eq!(f64, self.y(), other.y(), epsilon = 0.000003, ulps = 2)
     }
 }
 
@@ -145,8 +146,8 @@ mod tests {
     #[test]
     fn from_int() {
         let p = Point::new(1, 5);
-        assert_eq!(p.x, 1.0);
-        assert_eq!(p.y, 5.0);
+        assert_eq!(p.x(), 1.0);
+        assert_eq!(p.y(), 5.0);
     }
 
     macro_rules! angle_tests {

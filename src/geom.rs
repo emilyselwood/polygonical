@@ -3,26 +3,26 @@ use crate::point::Point;
 
 // calculate the area of a triangle
 pub fn area_of_triangle(a: Point, b: Point, c: Point) -> f64 {
-    0.5 * matrix_determinant(b.y - a.x, b.x - a.x, c.y - a.y, c.x - a.y)
+    0.5 * matrix_determinant(b.y() - a.x(), b.x() - a.x(), c.y() - a.y(), c.x() - a.y())
 }
 
 /// Find the point of intersection of two lines a->b and c->d
 /// Will return None if the lines don't intersect.
 pub fn point_of_intersection(a: Point, b: Point, c: Point, d: Point) -> Option<Point> {
-    let a1 = b.y - a.y;
-    let b1 = a.x - b.x;
-    let c1 = (a1 * a.x) + (b1 * a.y);
+    let a1 = b.y() - a.y();
+    let b1 = a.x() - b.x();
+    let c1 = (a1 * a.x()) + (b1 * a.y());
 
-    let a2 = d.y - c.y;
-    let b2 = c.x - d.x;
-    let c2 = (a2 * c.x) + (b2 * c.y);
+    let a2 = d.y() - c.y();
+    let b2 = c.x() - d.x();
+    let c2 = (a2 * c.x()) + (b2 * c.y());
 
     let determinant = a1 * b2 - a2 * b1;
 
     if determinant == 0.0 {
         // they might be parallel but overlap so check if the start of the second line is in side the first.
-        let x_r = (b.x - c.x) / (b.x - a.x);
-        let y_r = (b.y - c.y) / (b.y - a.y);
+        let x_r = (b.x() - c.x()) / (b.x() - a.x());
+        let y_r = (b.y() - c.y()) / (b.y() - a.y());
         if x_r > 0.0 && x_r < 1.0 && y_r > 0.0 && y_r < 1.0 {
             return Some(c);
         }
@@ -33,11 +33,11 @@ pub fn point_of_intersection(a: Point, b: Point, c: Point, d: Point) -> Option<P
     let y = (a1 * c2 - a2 * c1) / determinant;
 
     // check that x,y is inside the two points a->b and c->d
-    let x_r1 = (b.x - x) / (b.x - a.x);
-    let y_r1 = (b.y - y) / (b.y - a.y);
+    let x_r1 = (b.x() - x) / (b.x() - a.x());
+    let y_r1 = (b.y() - y) / (b.y() - a.y());
 
-    let x_r2 = (d.x - x) / (d.x - c.x);
-    let y_r2 = (d.y - y) / (d.y - c.y);
+    let x_r2 = (d.x() - x) / (d.x() - c.x());
+    let y_r2 = (d.y() - y) / (d.y() - c.y());
 
     // The clippy suggestion here is less obvious to me
     #[allow(clippy::manual_range_contains)]
@@ -103,7 +103,7 @@ enum Orientation {
 }
 
 fn orientation(a: Point, b: Point, c: Point) -> Orientation {
-    let v: f64 = (b.y - a.y) * (c.x - b.x) - (b.x - a.x) * (c.y - b.y);
+    let v: f64 = (b.y() - a.y()) * (c.x() - b.x()) - (b.x() - a.x()) * (c.y() - b.y());
 
     if v == 0.0 {
         return Orientation::Collinear;
@@ -114,7 +114,10 @@ fn orientation(a: Point, b: Point, c: Point) -> Orientation {
 }
 
 fn on_segment(a: Point, b: Point, c: Point) -> bool {
-    b.x <= a.x.max(c.x) && b.x >= a.x.min(c.x) && b.y <= a.y.max(c.y) && b.y >= a.y.min(c.y)
+    b.x() <= a.x().max(c.x())
+        && b.x() >= a.x().min(c.x())
+        && b.y() <= a.y().max(c.y())
+        && b.y() >= a.y().min(c.y())
 }
 
 fn matrix_determinant(a: f64, b: f64, c: f64, d: f64) -> f64 {

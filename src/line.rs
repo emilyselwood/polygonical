@@ -1,11 +1,15 @@
 use std::fmt;
 
+use getset::Getters;
+
 use crate::{geom, point::Point};
 
 /// Represents a line between two points.
+#[derive(Debug, Clone, Getters)]
+#[getset(get = "pub")]
 pub struct Line {
-    pub a: Point,
-    pub b: Point,
+    a: Point,
+    b: Point,
 }
 
 impl Line {
