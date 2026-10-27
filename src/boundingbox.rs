@@ -1,14 +1,11 @@
 use std::fmt;
 
-use getset::Getters;
-
 use crate::{point::Point, polygon::Polygon};
 
-#[derive(Debug, Clone, Copy, Getters)]
-#[getset(get = "pub")]
+#[derive(Debug, Clone, Copy)]
 pub struct BoundingBox {
-    a: Point,
-    b: Point,
+    pub a: Point,
+    pub b: Point,
 }
 
 impl BoundingBox {
@@ -29,44 +26,44 @@ impl BoundingBox {
     }
 
     pub fn contains(&self, p: Point) -> bool {
-        self.a.x() <= p.x() && self.b.x() >= p.x() && self.a.y() <= p.y() && self.b.y() >= p.y()
+        self.a.x <= p.x && self.b.x >= p.x && self.a.y <= p.y && self.b.y >= p.y
     }
 
     pub fn to_polygon(&self) -> Polygon {
         let points = vec![
-            Point::new(self.a.x(), self.a.y()),
-            Point::new(self.a.x(), self.b.y()),
-            Point::new(self.b.x(), self.b.y()),
-            Point::new(self.b.x(), self.a.y()),
+            Point::new(self.a.x, self.a.y),
+            Point::new(self.a.x, self.b.y),
+            Point::new(self.b.x, self.b.y),
+            Point::new(self.b.x, self.a.y),
         ];
-        Polygon::new_unchecked(points)
+        Polygon::new(points)
     }
 
     pub fn intersects(&self, other: &BoundingBox) -> bool {
-        other.contains(Point::new(self.a.x(), self.a.y()))
-            || other.contains(Point::new(self.b.x(), self.a.y()))
-            || other.contains(Point::new(self.a.x(), self.b.y()))
-            || other.contains(Point::new(self.b.x(), self.b.y()))
-            || self.contains(Point::new(other.a.x(), other.a.y()))
-            || self.contains(Point::new(other.b.x(), other.a.y()))
-            || self.contains(Point::new(other.a.x(), other.b.y()))
-            || self.contains(Point::new(other.b.x(), other.b.y()))
-            || (other.a.x() >= self.a.x()
-                && other.b.x() <= self.b.x()
-                && self.a.y() >= other.a.y()
-                && self.b.y() <= other.b.y())
-            || (other.a.y() >= self.a.y()
-                && other.b.y() <= self.b.y()
-                && self.a.x() >= other.a.x()
-                && self.b.x() <= other.b.x())
+        other.contains(Point::new(self.a.x, self.a.y))
+            || other.contains(Point::new(self.b.x, self.a.y))
+            || other.contains(Point::new(self.a.x, self.b.y))
+            || other.contains(Point::new(self.b.x, self.b.y))
+            || self.contains(Point::new(other.a.x, other.a.y))
+            || self.contains(Point::new(other.b.x, other.a.y))
+            || self.contains(Point::new(other.a.x, other.b.y))
+            || self.contains(Point::new(other.b.x, other.b.y))
+            || (other.a.x >= self.a.x
+                && other.b.x <= self.b.x
+                && self.a.y >= other.a.y
+                && self.b.y <= other.b.y)
+            || (other.a.y >= self.a.y
+                && other.b.y <= self.b.y
+                && self.a.x >= other.a.x
+                && self.b.x <= other.b.x)
     }
 
     pub fn width(&self) -> f64 {
-        self.b.x() - self.a.x()
+        self.b.x - self.a.x
     }
 
     pub fn height(&self) -> f64 {
-        self.b.y() - self.a.y()
+        self.b.y - self.a.y
     }
 }
 

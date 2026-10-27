@@ -6,6 +6,7 @@ pub mod point;
 pub mod polygon;
 
 mod geom;
+mod maths;
 
 #[cfg(test)]
 mod tests {

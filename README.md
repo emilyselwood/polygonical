@@ -9,7 +9,7 @@ Rotate a polygon:
     use polygonical::polygon::Polygon;
     use polygonical::point::Point;
 
-    let poly = Polygon::new_unchecked(vec![
+    let poly = Polygon::new(vec![
         Point::new(0.0, 1.0),
         Point::new(1.0, 1.0),
         Point::new(1.0, 0.0),
@@ -40,7 +40,7 @@ Create an approximation of a circle:
         .map(|a| Point::new(radius, 0.0).rotate((a as f64).to_radians()).translate(&center))
         .collect();
 
-    let circle = Polygon::new_unchecked(points);
+    let circle = Polygon::new(points);
      
     let approx_area = circle.area();
     let area = std::f64::consts::PI * radius * radius;
