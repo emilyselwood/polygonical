@@ -131,6 +131,7 @@ fn matrix_determinant(a: f64, b: f64, c: f64, d: f64) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::area_of_triangle;
+    use super::distance;
     use super::lines_intersect;
     use super::point_of_intersection;
     use crate::point::Point;
@@ -194,5 +195,23 @@ mod tests {
         simple_90: (Point::new(1.0, 0.0), Point::new(1.0, 2.0)), (Point::new(0.0, 1.0), Point::new(2.0, 1.0)), Some(Point::new(1.0, 1.0)),
         intersects_outside: (Point::new(1.0, 0.0), Point::new(1.0, 2.0)), (Point::new(0.0, 3.0), Point::new(2.0, 3.0)), None,
         intersection_parallel: (Point::new(0.0, 0.0), Point::new(2.0, 2.0)), (Point::new(1.0, 1.0), Point::new(3.0, 3.0)), Some(Point::new(1.0, 1.0)),
+    );
+
+    macro_rules! distance_test {
+        ($($name:ident: $point_a:expr,$point_b:expr,$expected:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let result = distance(&$point_a, &$point_b);
+                    assert_eq!(result, $expected);
+                }
+            )*
+        };
+    }
+
+    distance_test!(
+        distance_basic: Point::new(0.0, 0.0), Point::new(5.0, 5.0), 7.0710678118654755,
+        distance_horizontal: Point::new(1.0, 0.0), Point::new(5.0, 0.0), 4.0,
+        distance_vertical: Point::new(1.0, 1.0), Point::new(5.0, 1.0), 4.0,
     );
 }
