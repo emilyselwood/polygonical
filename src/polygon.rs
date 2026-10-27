@@ -1,6 +1,6 @@
 use float_cmp::approx_eq;
 
-use crate::{boundingbox::BoundingBox, geom, point::Point};
+use crate::{boundingbox::BoundingBox, errors::PolygonicalError, geom, point::Point};
 use std::{
     fmt::{self, Display},
     iter::zip,
@@ -29,6 +29,15 @@ impl Polygon {
 
         let bounds = BoundingBox::from_points(&points);
         Polygon { points, bounds }
+    }
+
+    pub fn new_checked(points: Vec<Point>) -> Result<Self, PolygonicalError> {
+        if points.len() < 3 {
+            return Err(PolygonicalError::NotEnoughPoints(points.len()));
+        }
+
+        let bounds = BoundingBox::from_points(&points);
+        Ok(Polygon { points, bounds })
     }
 
     // TODO: circles
@@ -107,6 +116,20 @@ impl Polygon {
             .sum();
 
         triangle_sum
+    }
+
+    pub fn area_checked(&self) -> Result<f64, PolygonicalError> {
+        if self.is_self_intersecting() {
+            return Err(PolygonicalError::SelfIntersecting);
+        }
+
+        let sides = self.sides();
+        let triangle_sum = sides
+            .iter()
+            .map(|s| geom::area_of_triangle(Point::zero(), s.0, s.1))
+            .sum();
+
+        Ok(triangle_sum)
     }
 
     /// Return the point average of this polygon giving a possible centre
