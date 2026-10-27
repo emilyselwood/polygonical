@@ -15,4 +15,3 @@ repository = "https://github.com/emilyselwood/polygonical"
 
 [dependencies]
 float-cmp = "0.9.0"
-getset = "0.1.6"
