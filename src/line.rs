@@ -21,6 +21,7 @@ impl Line {
         geom::point_of_intersection(self.a, self.b, other.a, other.b)
     }
 
+    // distance between point a and point fucking b
     pub fn length(&self) -> f64 {
         geom::distance(&self.a, &self.b)
     }

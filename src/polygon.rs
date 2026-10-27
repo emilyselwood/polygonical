@@ -137,6 +137,7 @@ impl Polygon {
         Ok(triangle_sum)
     }
 
+    // total length of all the edges.
     pub fn length(&self) -> f64 {
         self.sides()
             .iter()
