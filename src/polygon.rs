@@ -1,6 +1,11 @@
 use float_cmp::approx_eq;
 
-use crate::{boundingbox::BoundingBox, errors::PolygonicalError, geom, point::Point};
+use crate::{
+    boundingbox::BoundingBox,
+    errors::PolygonicalError,
+    geom::{self, distance},
+    point::Point,
+};
 use std::{
     fmt::{self, Display},
     iter::zip,
@@ -130,6 +135,13 @@ impl Polygon {
             .sum();
 
         Ok(triangle_sum)
+    }
+
+    pub fn length(&self) -> f64 {
+        self.sides()
+            .iter()
+            .map(|(start, end)| distance(start, end))
+            .sum()
     }
 
     /// Return the point average of this polygon giving a possible centre
@@ -336,6 +348,8 @@ impl Display for Polygon {
 
 #[cfg(test)]
 mod tests {
+
+    use float_cmp::assert_approx_eq;
 
     use crate::{point::Point, tests::assert_f64};
 
@@ -592,5 +606,21 @@ mod tests {
         let result = a.union(&b);
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn length() {
+        let p = Polygon::new(vec![
+            Point::new(1.0, 1.0),
+            Point::new(1.0, -1.0),
+            Point::new(-1.0, -1.0),
+            Point::new(-1.0, 1.0),
+        ]);
+
+        assert_approx_eq!(f64, p.length(), 8.0);
+
+        // rotating shouldn't change the length
+        let p2 = p.rotate_around_origin(45.0_f64.to_radians());
+        assert_approx_eq!(f64, p2.length(), 8.0);
     }
 }

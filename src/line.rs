@@ -20,6 +20,10 @@ impl Line {
     pub fn point_of_intersection(&self, other: &Self) -> Option<Point> {
         geom::point_of_intersection(self.a, self.b, other.a, other.b)
     }
+
+    pub fn length(&self) -> f64 {
+        geom::distance(&self.a, &self.b)
+    }
 }
 
 impl fmt::Display for Line {
