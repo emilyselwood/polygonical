@@ -1,6 +1,13 @@
 /// Geometry helper functions for various things. None of this is exposed outside the library
 use crate::point::Point;
 
+/// calculate the distance between two points.
+pub fn distance(a: &Point, b: &Point) -> f64 {
+    let x = a.x - b.x;
+    let y = a.y - b.y;
+    ((x * x) + (y * y)).sqrt()
+}
+
 // calculate the area of a triangle
 pub fn area_of_triangle(a: Point, b: Point, c: Point) -> f64 {
     0.5 * matrix_determinant(b.y - a.x, b.x - a.x, c.y - a.y, c.x - a.y)

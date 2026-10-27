@@ -3,6 +3,8 @@ use std::fmt;
 
 use float_cmp::approx_eq;
 
+use crate::geom;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
     pub x: f64,
@@ -93,6 +95,11 @@ impl Point {
             y: (self.y * angle.cos()) + (self.x * angle.sin()),
         }
     }
+
+    /// the length between this point and the origin.
+    pub fn length(&self) -> f64 {
+        geom::distance(&Point::zero(), self)
+    }
 }
 
 impl fmt::Display for Point {
@@ -137,6 +144,8 @@ impl From<(i32, i32)> for Point {
 
 #[cfg(test)]
 mod tests {
+
+    use float_cmp::assert_approx_eq;
 
     use crate::point::Point;
 
@@ -190,5 +199,12 @@ mod tests {
         let result = p.rotate(90.0_f64.to_radians());
 
         assert_eq!(result, p);
+    }
+
+    #[test]
+    fn distance() {
+        let p = Point::new(5.0, 0.0);
+        let l = p.length();
+        assert_approx_eq!(f64, l, 5.0);
     }
 }
