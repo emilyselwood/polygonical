@@ -65,6 +65,10 @@ impl BoundingBox {
     pub fn height(&self) -> f64 {
         self.b.y - self.a.y
     }
+
+    pub fn length(&self) -> f64 {
+        (self.height() * 2.0) + (self.width() * 2.0)
+    }
 }
 
 impl fmt::Display for BoundingBox {
@@ -119,5 +123,11 @@ mod tests {
         let bbox = BoundingBox::new(Point::new(2.0, 1.0), Point::new(4.0, 5.4));
         assert_f64!(bbox.width(), 2.0);
         assert_f64!(bbox.height(), 4.4);
+    }
+
+    #[test]
+    fn length() {
+        let bbox = BoundingBox::new(Point::new(2.0, 1.0), Point::new(4.0, 5.4));
+        assert_f64!(bbox.length(), 12.8);
     }
 }
